@@ -62,7 +62,8 @@ func (rc *RunContext) GetEnv() map[string]string {
 }
 
 func (rc *RunContext) jobContainerName() string {
-	return createContainerName("act", rc.String())
+	name := createContainerName("act", rc.Config.RunID, rc.String())
+	return name
 }
 
 // Returns the binds and mounts for the container, resolving paths as appopriate
@@ -404,22 +405,8 @@ func mergeMaps(maps ...map[string]string) map[string]string {
 func createContainerName(parts ...string) string {
 	name := make([]string, 0)
 	pattern := regexp.MustCompile("[^a-zA-Z0-9]")
-	partLen := (30 / len(parts)) - 1
-	for i, part := range parts {
-		if i == len(parts)-1 {
-			name = append(name, pattern.ReplaceAllString(part, "-"))
-		} else {
-			// If any part has a '-<number>' on the end it is likely part of a matrix job.
-			// Let's preserve the number to prevent clashes in container names.
-			re := regexp.MustCompile("-[0-9]+$")
-			num := re.FindStringSubmatch(part)
-			if len(num) > 0 {
-				name = append(name, trimToLen(pattern.ReplaceAllString(part, "-"), partLen-len(num[0])))
-				name = append(name, num[0])
-			} else {
-				name = append(name, trimToLen(pattern.ReplaceAllString(part, "-"), partLen))
-			}
-		}
+	for _, part := range parts {
+		name = append(name, pattern.ReplaceAllString(part, "-"))
 	}
 	return strings.ReplaceAll(strings.Trim(strings.Join(name, "-"), "-"), "--", "-")
 }

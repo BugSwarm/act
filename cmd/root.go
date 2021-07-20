@@ -11,6 +11,7 @@ import (
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/andreaskoch/go-fswatch"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/mitchellh/go-homedir"
 	gitignore "github.com/sabhiram/go-gitignore"
@@ -250,6 +251,9 @@ func newRunCommand(ctx context.Context, input *Input) func(*cobra.Command, []str
 			}
 		}
 
+		// Generate a new UUID
+		runid := strings.ReplaceAll(uuid.New().String(), "-", "")
+
 		// run the plan
 		config := &runner.Config{
 			Actor:                 input.actor,
@@ -274,6 +278,7 @@ func newRunCommand(ctx context.Context, input *Input) func(*cobra.Command, []str
 			ContainerCapAdd:       input.containerCapAdd,
 			ContainerCapDrop:      input.containerCapDrop,
 			AutoRemove:            input.autoRemove,
+			RunID:                 runid,
 		}
 		r, err := runner.New(config)
 		if err != nil {
