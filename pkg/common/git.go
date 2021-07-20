@@ -285,6 +285,11 @@ func NewGitCloneExecutor(input NewGitCloneExecutorInput) Executor {
 		defer cloneLock.Unlock()
 
 		refName := plumbing.ReferenceName(fmt.Sprintf("refs/heads/%s", input.Ref))
+
+		if _, err := git.PlainOpen(input.Dir); err == nil {
+			return nil
+		}
+
 		r, err := CloneIfRequired(ctx, refName, input, logger)
 		if err != nil {
 			return err
