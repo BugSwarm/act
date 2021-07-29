@@ -80,6 +80,7 @@ func (rc *RunContext) GetBindsAndMounts() ([]string, map[string]string) {
 
 	mounts := map[string]string{
 		"act-toolcache": "/toolcache",
+		"act-artifacts-" + rc.Config.RunID: "/artifacts",
 	}
 
 	if rc.Config.BindWorkdir {
