@@ -226,7 +226,7 @@ func (rc *RunContext) Executor() common.Executor {
 	steps = append(steps, rc.stopJobContainer())
 
 	return common.NewPipelineExecutor(steps...).
-		Finally(rc.stopJobContainer()).
+		Finally(rc.stopJobContainer().IfBool(rc.Config.AutoRemove)).
 		If(rc.isEnabled)
 }
 
