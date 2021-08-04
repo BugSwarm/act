@@ -157,10 +157,10 @@ func (runner *runnerImpl) NewPlanExecutor(plan *model.Plan) common.Executor {
 				return nil
 			}
 			artifactVolume := "act-artifacts-" + runner.config.RunID
-			log.Infof("[[[]]] Cleaning up artifacts volume \"%s\"", artifactVolume)
+			log.Infof("Cleaning up artifacts volume \"%s\"", artifactVolume)
 			err := container.NewDockerVolumeRemoveExecutor(artifactVolume, false)(ctx)
 			if err != nil {
-				log.Infof("[[[]]] Error cleaning up volume \"%s\": %v", artifactVolume, err)
+				log.Errorf("Error cleaning up volume \"%s\": %v", artifactVolume, err)
 			}
 			return err
 		})
