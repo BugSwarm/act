@@ -80,6 +80,7 @@ func (rc *RunContext) GetBindsAndMounts() ([]string, map[string]string) {
 
 	mounts := map[string]string{
 		"act-toolcache": "/toolcache",
+		"act-artifacts-" + rc.Config.RunID: "/artifacts",
 	}
 
 	if rc.Config.BindWorkdir {
@@ -225,7 +226,7 @@ func (rc *RunContext) Executor() common.Executor {
 	steps = append(steps, rc.stopJobContainer())
 
 	return common.NewPipelineExecutor(steps...).
-		Finally(rc.stopJobContainer()).
+		Finally(rc.stopJobContainer().IfBool(rc.Config.AutoRemove)).
 		If(rc.isEnabled)
 }
 

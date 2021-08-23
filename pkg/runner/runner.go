@@ -10,6 +10,7 @@ import (
 	"strings"
 
 	"github.com/nektos/act/pkg/common"
+	"github.com/nektos/act/pkg/container"
 	"github.com/nektos/act/pkg/model"
 	log "github.com/sirupsen/logrus"
 )
@@ -150,7 +151,19 @@ func (runner *runnerImpl) NewPlanExecutor(plan *model.Plan) common.Executor {
 		pipeline = append(pipeline, common.NewParallelExecutor(stageExecutor...))
 	}
 
-	return common.NewPipelineExecutor(pipeline...)
+	return common.NewPipelineExecutor(pipeline...).
+		Finally(func(ctx context.Context) error {
+			if !runner.config.AutoRemove {
+				return nil
+			}
+			artifactVolume := "act-artifacts-" + runner.config.RunID
+			log.Infof("Cleaning up artifacts volume \"%s\"", artifactVolume)
+			err := container.NewDockerVolumeRemoveExecutor(artifactVolume, false)(ctx)
+			if err != nil {
+				log.Errorf("Error cleaning up volume \"%s\": %v", artifactVolume, err)
+			}
+			return err
+		})
 }
 
 func (runner *runnerImpl) newRunContext(run *model.Run, matrix map[string]interface{}) *RunContext {
