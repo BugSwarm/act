@@ -8,6 +8,7 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
+      - run: '[[ "$(pwd)" == "${GITHUB_WORKSPACE}" ]]'
       - run: echo ${{ env.TEST }} | grep value
       - run: env
       - uses: docker://node:12-buster-slim
@@ -22,6 +23,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [check]
     steps:
+      - uses: actions/checkout@v2
       - uses: ./actions/action1
         with:
           args: echo 'build'

@@ -153,7 +153,7 @@ func (rc *RunContext) startJobContainer() common.Executor {
 			rc.JobContainer.Create(rc.Config.ContainerCapAdd, rc.Config.ContainerCapDrop),
 			rc.JobContainer.Start(false),
 			rc.JobContainer.UpdateFromEnv("/etc/environment", &rc.Env),
-			rc.JobContainer.Exec([]string{"mkdir", "-m", "0777", "-p", ActPath}, rc.Env, "root"),
+			rc.JobContainer.Exec([]string{"mkdir", "-m", "0777", "-p", ActPath}, rc.Env, "root", ""),
 			rc.JobContainer.CopyDir(copyToPath, rc.Config.Workdir+string(filepath.Separator)+".", rc.Config.UseGitIgnore).IfBool(copyWorkspace),
 			rc.JobContainer.Copy(ActPath+"/", &container.FileEntry{
 				Name: "workflow/event.json",
@@ -171,9 +171,10 @@ func (rc *RunContext) startJobContainer() common.Executor {
 		)(ctx)
 	}
 }
-func (rc *RunContext) execJobContainer(cmd []string, env map[string]string) common.Executor {
+
+func (rc *RunContext) execJobContainer(cmd []string, env map[string]string, user, workdir string) common.Executor {
 	return func(ctx context.Context) error {
-		return rc.JobContainer.Exec(cmd, env, "")(ctx)
+		return rc.JobContainer.Exec(cmd, env, user, workdir)(ctx)
 	}
 }
 
@@ -697,7 +698,7 @@ func (rc *RunContext) withGithubEnv(env map[string]string) map[string]string {
 					// hardcode current ubuntu-latest since we have no way to check that 'on the fly'
 					env["ImageOS"] = "ubuntu20"
 				} else {
-					platformName = strings.SplitN(strings.Replace(platformName, `-`, ``, 1), `.`, 1)[0]
+					platformName = strings.SplitN(strings.Replace(platformName, `-`, ``, 1), `.`, 2)[0]
 					env["ImageOS"] = platformName
 				}
 			}
