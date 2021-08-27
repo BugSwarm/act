@@ -227,7 +227,7 @@ func (sc *StepContext) setupShellCommand() common.Executor {
 		run = runPrepend + "\n" + run + "\n" + runAppend
 
 		log.Debugf("Wrote command '%s' to '%s'", run, scriptName)
-		scriptPath := fmt.Sprintf("%s/%s", rc.Config.ContainerWorkdir(), scriptName)
+		scriptPath := fmt.Sprintf("/tmp/%s", scriptName)
 
 		if step.Shell == "" {
 			step.Shell = rc.Run.Job().Defaults.Run.Shell
@@ -252,7 +252,7 @@ func (sc *StepContext) setupShellCommand() common.Executor {
 
 		sc.Cmd = finalCMD
 
-		return rc.JobContainer.Copy(rc.Config.ContainerWorkdir(), &container.FileEntry{
+		return rc.JobContainer.Copy("/tmp/", &container.FileEntry{
 			Name: scriptName,
 			Mode: 0755,
 			Body: script.String(),
