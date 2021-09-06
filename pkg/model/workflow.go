@@ -226,21 +226,11 @@ func (j *Job) GetMatrixes() []map[string]interface{} {
 				case []interface{}:
 					for _, i := range t {
 						i := i.(map[string]interface{})
-						for k := range i {
-							if _, ok := m[k]; ok {
-								includes = append(includes, i)
-								break
-							}
-						}
+						includes = append(includes, i)
 					}
 				case interface{}:
 					v := v.(map[string]interface{})
-					for k := range v {
-						if _, ok := m[k]; ok {
-							includes = append(includes, v)
-							break
-						}
-					}
+					includes = append(includes, v)
 				}
 			}
 			delete(m, "include")
@@ -271,8 +261,20 @@ func (j *Job) GetMatrixes() []map[string]interface{} {
 				matrixes = append(matrixes, matrix)
 			}
 			for _, include := range includes {
-				log.Debugf("Adding include '%v'", include)
-				matrixes = append(matrixes, include)
+				notAdded := true
+				for _, matrix := range matrixProduct {
+					if hasKeysInCommon(matrix, include) && commonKeysMatch(matrix, include) {
+						log.Debugf("Applying include '%v' to matrix entry '%v'", include, matrix)
+						for k, v := range include {
+							matrix[k] = v
+						}
+						notAdded = false
+					}
+				}
+				if notAdded {
+					log.Debugf("Appending include '%v' to matrix", include)
+					matrixes = append(matrixes, include)
+				}
 			}
 		} else {
 			matrixes = append(matrixes, make(map[string]interface{}))
@@ -290,6 +292,17 @@ func commonKeysMatch(a map[string]interface{}, b map[string]interface{}) bool {
 		}
 	}
 	return true
+}
+
+func hasKeysInCommon(a map[string]interface{}, b map[string]interface{}) bool {
+	for aKey := range a {
+		for bKey := range b {
+			if aKey == bKey {
+				return true
+			}
+		}
+	}
+	return false
 }
 
 // ContainerSpec is the specification of the container to use for the job
