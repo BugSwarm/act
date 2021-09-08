@@ -575,7 +575,7 @@ func (rc *RunContext) getGithubContext() *githubContext {
 	return ghc
 }
 
-func (ghc *githubContext) isLocalCheckout(step *model.Step) bool {
+func (ghc *githubContext) isLocalCheckout(step *model.Step, ee ExpressionEvaluator) bool {
 	if step.Type() == model.StepTypeInvalid {
 		// This will be errored out by the executor later, we need this here to avoid a null panic though
 		return false
@@ -595,8 +595,11 @@ func (ghc *githubContext) isLocalCheckout(step *model.Step) bool {
 	if repository, ok := step.With["repository"]; ok && repository != ghc.Repository {
 		return false
 	}
-	if repository, ok := step.With["ref"]; ok && repository != ghc.Ref {
-		return false
+	if ref, ok := step.With["ref"]; ok {
+		interp, ok2 := ee.InterpolateWithStringCheck(ref)
+		if ok2 && interp != ghc.Ref {
+			return false
+		}
 	}
 	return true
 }
@@ -711,7 +714,7 @@ func (rc *RunContext) withGithubEnv(env map[string]string) map[string]string {
 func (rc *RunContext) localCheckoutPath() (string, bool) {
 	ghContext := rc.getGithubContext()
 	for _, step := range rc.Run.Job().Steps {
-		if ghContext.isLocalCheckout(step) {
+		if ghContext.isLocalCheckout(step, rc.ExprEval) {
 			return step.With["path"], true
 		}
 	}
