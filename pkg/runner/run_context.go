@@ -75,7 +75,10 @@ func (rc *RunContext) GetBindsAndMounts() ([]string, map[string]string) {
 	}
 
 	binds := []string{
-		fmt.Sprintf("%s:%s", rc.Config.ContainerDaemonSocket, "/var/run/docker.sock"),
+		// ***DO NOT BIND '/var/run/docker.sock'!*** If you do, then you're giving the runner image, running code
+		// scraped from the internet, access to docker ON THE HOST MACHINE.
+		// (I've already come across a workflow that runs 'docker image prune -af'. That was a nasty shock.  --Robert)
+		// fmt.Sprintf("%s:%s", rc.Config.ContainerDaemonSocket, "/var/run/docker.sock"),
 	}
 
 	mounts := map[string]string{
