@@ -90,20 +90,30 @@ func NewErrorExecutor(err error) Executor {
 	}
 }
 
+func parallelExecutorWorker(executorChan <-chan Executor, errChan chan error, ctx *context.Context) {
+	for executor := range executorChan {
+		err := executor.ChannelError(errChan)(*ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
 // NewParallelExecutor creates a new executor from a parallel of other executors
 func NewParallelExecutor(executors ...Executor) Executor {
 	return func(ctx context.Context) error {
+		maxJobs := 4
 		errChan := make(chan error)
+		executorChan := make(chan Executor, len(executors))
 
+		for i := 0; i < maxJobs; i++ {
+			go parallelExecutorWorker(executorChan, errChan, &ctx)
+		}
 		for _, executor := range executors {
 			e := executor
-			go func() {
-				err := e.ChannelError(errChan)(ctx)
-				if err != nil {
-					log.Fatal(err)
-				}
-			}()
+			executorChan <- e
 		}
+		close(executorChan)
 
 		// Executor waits all executors to cleanup these resources.
 		var firstErr error
