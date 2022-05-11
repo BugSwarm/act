@@ -103,7 +103,7 @@ func supportsContainerImagePlatform(cli *client.Client) bool {
 
 func (cr *containerReference) Create(capAdd []string, capDrop []string) common.Executor {
 	return common.
-		NewInfoExecutor("%sdocker create --memory=100g image=%s platform=%s entrypoint=%+q cmd=%+q", logPrefix, cr.input.Image, cr.input.Platform, cr.input.Entrypoint, cr.input.Cmd).
+		NewInfoExecutor("%sdocker create --memory=245g image=%s platform=%s entrypoint=%+q cmd=%+q", logPrefix, cr.input.Image, cr.input.Platform, cr.input.Entrypoint, cr.input.Cmd).
 		Then(
 			common.NewPipelineExecutor(
 				cr.connect(),
@@ -115,7 +115,7 @@ func (cr *containerReference) Create(capAdd []string, capDrop []string) common.E
 
 func (cr *containerReference) Start(attach bool) common.Executor {
 	return common.
-		NewInfoExecutor("%sdocker run --memory=100g image=%s platform=%s entrypoint=%+q cmd=%+q", logPrefix, cr.input.Image, cr.input.Platform, cr.input.Entrypoint, cr.input.Cmd).
+		NewInfoExecutor("%sdocker run --memory=245g image=%s platform=%s entrypoint=%+q cmd=%+q", logPrefix, cr.input.Image, cr.input.Platform, cr.input.Entrypoint, cr.input.Cmd).
 		Then(
 			common.NewPipelineExecutor(
 				cr.connect(),
